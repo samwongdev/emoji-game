@@ -202,7 +202,7 @@
   }
 
   function handleGuess() {
-    if (!isRunning || isGameOver) return;
+    if (!isRunning || isGameOver || !current) return;
     
     const userGuess = $guess.value.trim().toLowerCase();
     
@@ -239,7 +239,7 @@
   }
 
   function showHint() {
-    if (!isRunning || isGameOver) return;
+    if (!isRunning || isGameOver || !current) return;
     $msg.textContent = `💡 Hint: ${current.hint}`;
     $btnHint.disabled = true;
     setTimeout(() => {
