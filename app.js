@@ -22,16 +22,40 @@
   const $btnSkip = $("#btnSkip");
   const $score = $("#score");
   const $streak = $("#streak");
+  const $timer = $("#timer");
 
   // Game state
   let current = null;
   let attempts = 0;
+  let timer = 15;
+  let tickId = null;
   let score = parseInt(localStorage.getItem("emojiGameScore")) || 0;
   let streak = parseInt(localStorage.getItem("emojiGameStreak")) || 0;
 
   // Initialize UI
   $score.textContent = score;
   $streak.textContent = streak;
+  $timer.textContent = timer;
+
+  function setTimer(value) {
+    timer = Math.max(0, Math.min(value, 30));
+    $timer.textContent = timer;
+  }
+
+  function startTimer() {
+    if (tickId) clearInterval(tickId);
+    
+    tickId = setInterval(() => {
+      setTimer(timer - 1);
+      
+      if (timer <= 0) {
+        clearInterval(tickId);
+        tickId = null;
+        $msg.textContent = "⏰ Time up! Moving on…";
+        nextRound();
+      }
+    }, 1000);
+  }
 
   function pickRandomPuzzle() {
     return PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
@@ -40,6 +64,7 @@
   function startRound() {
     current = pickRandomPuzzle();
     attempts = 0;
+    setTimer(15);
     $emojis.textContent = current.emojis;
     $msg.textContent = "";
     $msg.classList.remove("glow");
@@ -47,9 +72,14 @@
     $btnGuess.disabled = false;
     $btnGuess.textContent = "Guess";
     $guess.focus();
+    startTimer();
   }
 
   function nextRound() {
+    if (tickId) {
+      clearInterval(tickId);
+      tickId = null;
+    }
     setTimeout(startRound, 1200);
   }
 
@@ -72,6 +102,7 @@
     const userGuess = $guess.value.trim().toLowerCase();
     
     if (userGuess === current.answer) {
+      setTimer(timer + 5); // Add 5 seconds for correct answer
       $msg.textContent = "✅ Correct!";
       $msg.classList.add("glow");
       updateScore(true);
@@ -82,7 +113,14 @@
     }
 
     attempts++;
+    setTimer(timer - 3); // Subtract 3 seconds for wrong answer
     updateScore(false);
+    
+    if (timer <= 0) {
+      $msg.textContent = "⏰ Time up!";
+      nextRound();
+      return;
+    }
     
     if (attempts >= 3) {
       $msg.textContent = "☠️ 3 tries used. Moving on…";

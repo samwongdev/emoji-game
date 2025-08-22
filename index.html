@@ -83,6 +83,25 @@
         justify-content: center;
       }
 
+      /* Timer Container */
+      .timer-container {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      #timer {
+        font-size: 1.5rem;
+        color: #ff3d81;
+        text-shadow: 0 0 15px #ff3d81;
+        font-weight: bold;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: 1px solid #ff3d81;
+        display: inline-block;
+        min-width: 60px;
+      }
+
       /* Input Row */
       .input-row {
         display: flex;
@@ -237,6 +256,10 @@
       
       <div class="game-panel">
         <div id="emojis" class="emoji-display">🍎📱</div>
+        
+        <div class="timer-container">
+          <div id="timer" aria-live="polite" aria-label="Time remaining">15</div>
+        </div>
         
         <div class="input-row">
           <input id="guess" placeholder="Your guess..." />
