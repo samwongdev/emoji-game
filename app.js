@@ -55,16 +55,44 @@
   // Load puzzles from JSON file
   async function loadPuzzles() {
     try {
-      const response = await fetch('public/puzzles.json');
-      if (!response.ok) throw new Error('Failed to fetch puzzles');
+      console.log('Attempting to load puzzles from JSON...');
+      console.log('Current working directory:', window.location.href);
+      
+      // Try multiple possible paths
+      let response;
+      const paths = ['public/puzzles.json', './public/puzzles.json', 'puzzles.json', './puzzles.json'];
+      
+      for (const path of paths) {
+        try {
+          console.log(`Trying path: ${path}`);
+          response = await fetch(path);
+          if (response.ok) {
+            console.log(`Successfully loaded puzzles from: ${path}`);
+            break;
+          } else {
+            console.log(`Path ${path} returned status: ${response.status}`);
+          }
+        } catch (e) {
+          console.log(`Failed to load from ${path}:`, e.message);
+        }
+      }
+      
+      if (!response || !response.ok) {
+        throw new Error(`Failed to fetch puzzles from any path. Status: ${response?.status}`);
+      }
+      
       PUZZLES = await response.json();
+      console.log(`Loaded ${PUZZLES.length} puzzles successfully`);
+      
     } catch (error) {
       console.warn('Failed to load puzzles from JSON, using fallback:', error);
+      console.log('Using fallback puzzles:', FALLBACK_PUZZLES);
       PUZZLES = FALLBACK_PUZZLES;
     }
     
     // Initialize puzzle queue
     shufflePuzzleQueue();
+    console.log('Puzzle queue initialized with', puzzleQueue.length, 'puzzles');
   }
 
   // Fisher-Yates shuffle algorithm
@@ -260,6 +288,7 @@
   // Event listeners
   $btnStart.addEventListener("click", startGame);
   $btnGuess.addEventListener("click", handleGuess);
+  $btnHint.addEventListener("click", showHint);
   $btnSkip.addEventListener("click", skipPuzzle);
   $guess.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && isRunning && !isGameOver) handleGuess();
@@ -269,34 +298,6 @@
   document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
     radio.addEventListener("change", handleDifficultyChange);
   });
-
-  // Create hint button
-  const hintButton = document.createElement("button");
-  hintButton.id = "btnHint";
-  hintButton.textContent = "Hint";
-  hintButton.className = "btn";
-  hintButton.style.cssText = `
-    background-color: #9d4bff;
-    color: #ffffff;
-    border: none;
-    padding: 10px 16px;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-left: 8px;
-  `;
-  hintButton.addEventListener("mouseenter", function() {
-    this.style.backgroundColor = "#7c3aed";
-  });
-  hintButton.addEventListener("mouseleave", function() {
-    this.style.backgroundColor = "#9d4bff";
-  });
-  hintButton.addEventListener("click", showHint);
-
-  // Insert hint button after skip button
-  if ($btnSkip && $btnSkip.parentNode) {
-    $btnSkip.parentNode.insertBefore(hintButton, $btnSkip.nextSibling);
-  }
 
   // Load puzzles and initialize
   loadPuzzles();
