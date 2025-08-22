@@ -1,14 +1,11 @@
 (function () {
-  const PUZZLES = [
+  // Fallback puzzles in case JSON loading fails
+  const FALLBACK_PUZZLES = [
     { emojis: "🍎📱", answer: "iphone", hint: "Think Apple + phone" },
     { emojis: "🎬🍿", answer: "cinema", hint: "Where you watch movies" },
     { emojis: "🚗⛽", answer: "gas", hint: "Fuel for cars" },
     { emojis: "🌙⭐", answer: "night", hint: "When the stars come out" },
-    { emojis: "☕📚", answer: "study", hint: "Coffee and books go together" },
-    { emojis: "🏠🌳", answer: "garden", hint: "Plants around your house" },
-    { emojis: "🎵🎤", answer: "karaoke", hint: "Singing with music" },
-    { emojis: "🍕🍺", answer: "party", hint: "Food and drinks celebration" },
-    { emojis: "🚀🌍", answer: "space", hint: "Beyond our planet" }
+    { emojis: "☕📚", answer: "study", hint: "Coffee and books go together" }
   ];
 
   const DIFFICULTY = {
@@ -41,6 +38,11 @@
   let score = 0;
   let streak = 0;
 
+  // Puzzle management
+  let PUZZLES = [];
+  let puzzleQueue = [];
+  let currentPuzzleIndex = 0;
+
   // Initialize UI
   updateUI();
   disableGameControls();
@@ -49,6 +51,39 @@
   const savedDifficulty = localStorage.getItem("emojiGameDifficulty") || 'easy';
   currentDifficulty = savedDifficulty;
   $(`#${savedDifficulty}`).checked = true;
+
+  // Load puzzles from JSON file
+  async function loadPuzzles() {
+    try {
+      const response = await fetch('public/puzzles.json');
+      if (!response.ok) throw new Error('Failed to fetch puzzles');
+      PUZZLES = await response.json();
+    } catch (error) {
+      console.warn('Failed to load puzzles from JSON, using fallback:', error);
+      PUZZLES = FALLBACK_PUZZLES;
+    }
+    
+    // Initialize puzzle queue
+    shufflePuzzleQueue();
+  }
+
+  // Fisher-Yates shuffle algorithm
+  function shufflePuzzleQueue() {
+    puzzleQueue = [...PUZZLES];
+    for (let i = puzzleQueue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [puzzleQueue[i], puzzleQueue[j]] = [puzzleQueue[j], puzzleQueue[i]];
+    }
+    currentPuzzleIndex = 0;
+  }
+
+  // Get next puzzle from queue, reshuffle if exhausted
+  function getNextPuzzle() {
+    if (currentPuzzleIndex >= puzzleQueue.length) {
+      shufflePuzzleQueue();
+    }
+    return puzzleQueue[currentPuzzleIndex++];
+  }
 
   // Helper functions
   function setTimer(value) {
@@ -109,12 +144,8 @@
     }, 1000);
   }
 
-  function pickRandomPuzzle() {
-    return PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
-  }
-
   function startRound() {
-    current = pickRandomPuzzle();
+    current = getNextPuzzle();
     attempts = 0;
     $emojis.textContent = current.emojis;
     $msg.textContent = "";
@@ -266,4 +297,7 @@
   if ($btnSkip && $btnSkip.parentNode) {
     $btnSkip.parentNode.insertBefore(hintButton, $btnSkip.nextSibling);
   }
+
+  // Load puzzles and initialize
+  loadPuzzles();
 })();
