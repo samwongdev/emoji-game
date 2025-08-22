@@ -42,6 +42,7 @@
     attempts = 0;
     $emojis.textContent = current.emojis;
     $msg.textContent = "";
+    $msg.classList.remove("glow");
     $guess.value = "";
     $btnGuess.disabled = false;
     $btnGuess.textContent = "Guess";
@@ -72,6 +73,7 @@
     
     if (userGuess === current.answer) {
       $msg.textContent = "✅ Correct!";
+      $msg.classList.add("glow");
       updateScore(true);
       $btnGuess.disabled = true;
       $btnGuess.textContent = "Solved!";

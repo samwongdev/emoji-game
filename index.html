@@ -2,48 +2,257 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Emoji Guess</title>
+    <title>Emoji Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-      html, body { height: 100%; }
-      body {
+      * {
         margin: 0;
-        background: #f5f5f5;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body { 
+        height: 100%; 
+        background: #0b0f1a;
+        font-family: 'Press Start 2P', monospace;
+        color: #ffffff;
+        overflow-x: hidden;
+      }
+
+      /* CRT Scanline Effect */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 209, 0.03) 2px,
+          rgba(0, 255, 209, 0.03) 4px
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* Marquee Title */
+      .marquee {
+        font-size: 2.5rem;
+        color: #00ffd1;
+        text-shadow: 0 0 20px #00ffd1;
+        margin-bottom: 40px;
         text-align: center;
+        letter-spacing: 2px;
       }
-      #emojis { margin-bottom: 12px; }
-      #guess { padding: 8px 10px; font-size: 16px; border: 1px solid #d1d5db; border-radius: 6px; }
-      #btn {
-        background-color: #16a34a; /* green */
+
+      /* Game Panel */
+      .game-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid #00ffd1;
+        border-radius: 8px;
+        padding: 40px;
+        max-width: 720px;
+        width: 100%;
+        box-shadow: 0 0 30px rgba(0, 255, 209, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      /* Emoji Display */
+      .emoji-display {
+        font-size: 6rem;
+        text-align: center;
+        margin-bottom: 40px;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Input Row */
+      .input-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+
+      #guess {
+        flex: 1;
+        min-width: 200px;
+        padding: 12px 16px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #00ffd1;
+        border-radius: 4px;
         color: #ffffff;
-        border: none;
-        padding: 10px 16px;
-        font-size: 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-left: 8px;
+        outline: none;
       }
-      #btn:hover { background-color: #15803d; }
-      #msg { margin-top: 12px; }
+
+      #guess:focus {
+        border-color: #00ffd1;
+        box-shadow: 0 0 15px rgba(0, 255, 209, 0.5);
+      }
+
+      /* Button Styles */
+      .btn {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px;
+        padding: 12px 16px;
+        border: 2px solid;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        min-width: 80px;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px currentColor;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      #btnGuess {
+        background: transparent;
+        border-color: #00ffd1;
+        color: #00ffd1;
+      }
+
+      #btnGuess:hover:not(:disabled) {
+        background: #00ffd1;
+        color: #0b0f1a;
+      }
+
+      #btnHint {
+        background: transparent;
+        border-color: #9d4bff;
+        color: #9d4bff;
+      }
+
+      #btnHint:hover:not(:disabled) {
+        background: #9d4bff;
+        color: #ffffff;
+      }
+
+      #btnSkip {
+        background: transparent;
+        border-color: #ff3d81;
+        color: #ff3d81;
+      }
+
+      #btnSkip:hover:not(:disabled) {
+        background: #ff3d81;
+        color: #ffffff;
+      }
+
+      /* Message Area */
+      #msg {
+        min-height: 60px;
+        text-align: center;
+        font-size: 14px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        word-break: break-word;
+        line-height: 1.4;
+      }
+
+      /* Footer */
+      footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 12px;
+        color: #00ffd1;
+        text-shadow: 0 0 10px #00ffd1;
+      }
+
+      /* Glow Animation for Correct Answer */
+      @keyframes glow {
+        0%, 100% { text-shadow: 0 0 20px #00ffd1; }
+        50% { text-shadow: 0 0 40px #00ffd1, 0 0 60px #00ffd1; }
+      }
+
+      .glow {
+        animation: glow 1s ease-in-out infinite;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .marquee {
+          font-size: 1.8rem;
+        }
+        
+        .game-panel {
+          padding: 20px;
+          margin: 0 10px;
+        }
+        
+        .emoji-display {
+          font-size: 4rem;
+        }
+        
+        .input-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        
+        #guess {
+          min-width: auto;
+        }
+        
+        .btn {
+          font-size: 10px;
+          padding: 10px 12px;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Emoji → Word Guess</h1>
-    <div id="emojis" style="font-size:64px">🍎📱</div>
-    <div>
-      <input id="guess" placeholder="Your guess..." />
-      <button id="btnGuess">Guess</button>
-      <button id="btnSkip">Skip</button>
+    <div class="container">
+      <h1 class="marquee">EMOJI ARCADE</h1>
+      
+      <div class="game-panel">
+        <div id="emojis" class="emoji-display">🍎📱</div>
+        
+        <div class="input-row">
+          <input id="guess" placeholder="Your guess..." />
+          <button id="btnGuess" class="btn">Guess</button>
+          <button id="btnHint" class="btn">Hint</button>
+          <button id="btnSkip" class="btn">Skip</button>
+        </div>
+        
+        <div id="msg"></div>
+      </div>
+      
+      <footer>
+        Score: <span id="score">0</span> • Streak: <span id="streak">0</span>
+      </footer>
     </div>
-    <div id="msg"></div>
-    <footer style="margin-top: 20px; color: #6b7280; font-size: 14px;">
-      Score: <span id="score">0</span> • Streak: <span id="streak">0</span>
-    </footer>
+    
     <script src="app.js"></script>
   </body>
 </html>
