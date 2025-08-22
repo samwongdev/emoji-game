@@ -60,6 +60,78 @@
         letter-spacing: 2px;
       }
 
+      /* Game Controls */
+      .game-controls {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .btn-start {
+        background: transparent;
+        border-color: #00ffd1;
+        color: #00ffd1;
+        font-size: 16px;
+        padding: 15px 30px;
+        border-width: 3px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .btn-start:hover {
+        background: #00ffd1;
+        color: #0b0f1a;
+        box-shadow: 0 0 25px #00ffd1;
+        transform: translateY(-3px);
+      }
+
+      /* Difficulty Selector */
+      .difficulty-selector {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #ffffff;
+      }
+
+      .difficulty-selector > label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #00ffd1;
+        text-shadow: 0 0 10px #00ffd1;
+      }
+
+      .radio-group {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .radio-group input[type="radio"] {
+        display: none;
+      }
+
+      .radio-group label {
+        padding: 8px 16px;
+        border: 2px solid #00ffd1;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: #00ffd1;
+      }
+
+      .radio-group input[type="radio"]:checked + label {
+        background: #00ffd1;
+        color: #0b0f1a;
+        box-shadow: 0 0 15px #00ffd1;
+      }
+
+      .radio-group label:hover {
+        background: rgba(0, 255, 209, 0.2);
+        box-shadow: 0 0 10px #00ffd1;
+      }
+
       /* Game Panel */
       .game-panel {
         background: rgba(255, 255, 255, 0.05);
@@ -253,6 +325,22 @@
   <body>
     <div class="container">
       <h1 class="marquee">EMOJI ARCADE</h1>
+      
+      <div class="game-controls">
+        <button id="btnStart" class="btn btn-start">Start</button>
+      </div>
+      
+      <div class="difficulty-selector">
+        <label>Difficulty:</label>
+        <div class="radio-group">
+          <input type="radio" id="easy" name="difficulty" value="easy" checked>
+          <label for="easy">Easy</label>
+          <input type="radio" id="medium" name="difficulty" value="medium">
+          <label for="medium">Medium</label>
+          <input type="radio" id="hard" name="difficulty" value="hard">
+          <label for="hard">Hard</label>
+        </div>
+      </div>
       
       <div class="game-panel">
         <div id="emojis" class="emoji-display">🍎📱</div>
