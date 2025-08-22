@@ -19,22 +19,45 @@
   const button = document.getElementById("btn");
   const message = document.getElementById("msg");
   const emojis = document.getElementById("emojis");
+  const scoreElement = document.getElementById("score");
+  const streakElement = document.getElementById("streak");
+
+  // Load score and streak from localStorage
+  let score = parseInt(localStorage.getItem("emojiGameScore")) || 0;
+  let streak = parseInt(localStorage.getItem("emojiGameStreak")) || 0;
+
+  // Update UI with loaded values
+  scoreElement.textContent = score;
+  streakElement.textContent = streak;
 
   // Render the selected puzzle's emojis
   if (emojis) {
     emojis.textContent = selectedPuzzle.emojis;
   }
 
-  function evaluateGuess() {
-    const userGuess = (input?.value || "").trim().toLowerCase();
-    
-    if (userGuess === selectedPuzzle.answer) {
+  function updateScore(isCorrect) {
+    if (isCorrect) {
+      score += 10;
+      streak += 1;
       message.textContent = "✅ Correct!";
       button.disabled = true;
       button.textContent = "Solved!";
     } else {
+      score = Math.max(0, score - 3); // Prevent negative score
+      streak = 0;
       message.textContent = "❌ Try again";
     }
+    
+    // Update UI and localStorage
+    scoreElement.textContent = score;
+    streakElement.textContent = streak;
+    localStorage.setItem("emojiGameScore", score);
+    localStorage.setItem("emojiGameStreak", streak);
+  }
+
+  function evaluateGuess() {
+    const userGuess = (input?.value || "").trim().toLowerCase();
+    updateScore(userGuess === selectedPuzzle.answer);
   }
 
   function showHint() {
