@@ -12,70 +12,110 @@
     { emojis: "🚀🌍", answer: "space", hint: "Beyond our planet" }
   ];
 
-  // Randomly select a puzzle on page load
-  const selectedPuzzle = PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
+  // DOM helper and cached references
+  const $ = s => document.querySelector(s);
+  const $emojis = $("#emojis");
+  const $guess = $("#guess");
+  const $msg = $("#msg");
+  const $btnGuess = $("#btnGuess");
+  const $btnHint = $("#btnHint");
+  const $btnSkip = $("#btnSkip");
+  const $score = $("#score");
+  const $streak = $("#streak");
 
-  const input = document.getElementById("guess");
-  const button = document.getElementById("btn");
-  const message = document.getElementById("msg");
-  const emojis = document.getElementById("emojis");
-  const scoreElement = document.getElementById("score");
-  const streakElement = document.getElementById("streak");
-
-  // Load score and streak from localStorage
+  // Game state
+  let current = null;
+  let attempts = 0;
   let score = parseInt(localStorage.getItem("emojiGameScore")) || 0;
   let streak = parseInt(localStorage.getItem("emojiGameStreak")) || 0;
 
-  // Update UI with loaded values
-  scoreElement.textContent = score;
-  streakElement.textContent = streak;
+  // Initialize UI
+  $score.textContent = score;
+  $streak.textContent = streak;
 
-  // Render the selected puzzle's emojis
-  if (emojis) {
-    emojis.textContent = selectedPuzzle.emojis;
+  function pickRandomPuzzle() {
+    return PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
+  }
+
+  function startRound() {
+    current = pickRandomPuzzle();
+    attempts = 0;
+    $emojis.textContent = current.emojis;
+    $msg.textContent = "";
+    $guess.value = "";
+    $btnGuess.disabled = false;
+    $btnGuess.textContent = "Guess";
+    $guess.focus();
+  }
+
+  function nextRound() {
+    setTimeout(startRound, 1200);
   }
 
   function updateScore(isCorrect) {
     if (isCorrect) {
       score += 10;
       streak += 1;
-      message.textContent = "✅ Correct!";
-      button.disabled = true;
-      button.textContent = "Solved!";
     } else {
-      score = Math.max(0, score - 3); // Prevent negative score
+      score = Math.max(0, score - 3);
       streak = 0;
-      message.textContent = "❌ Try again";
     }
     
-    // Update UI and localStorage
-    scoreElement.textContent = score;
-    streakElement.textContent = streak;
+    $score.textContent = score;
+    $streak.textContent = streak;
     localStorage.setItem("emojiGameScore", score);
     localStorage.setItem("emojiGameStreak", streak);
   }
 
-  function evaluateGuess() {
-    const userGuess = (input?.value || "").trim().toLowerCase();
-    updateScore(userGuess === selectedPuzzle.answer);
+  function handleGuess() {
+    const userGuess = $guess.value.trim().toLowerCase();
+    
+    if (userGuess === current.answer) {
+      $msg.textContent = "✅ Correct!";
+      updateScore(true);
+      $btnGuess.disabled = true;
+      $btnGuess.textContent = "Solved!";
+      nextRound();
+      return;
+    }
+
+    attempts++;
+    updateScore(false);
+    
+    if (attempts >= 3) {
+      $msg.textContent = "☠️ 3 tries used. Moving on…";
+      nextRound();
+      return;
+    }
+    
+    $msg.textContent = `❌ Try again (attempts: ${attempts}/3)`;
+    $guess.value = "";
+    $guess.focus();
   }
 
   function showHint() {
-    message.textContent = `💡 Hint: ${selectedPuzzle.hint}`;
+    $msg.textContent = `💡 Hint: ${current.hint}`;
+    $btnHint.disabled = true;
+    setTimeout(() => {
+      $btnHint.disabled = false;
+    }, 1000);
   }
 
-  // Add hint button functionality
-  button?.addEventListener("click", evaluateGuess);
+  function skipPuzzle() {
+    $msg.textContent = "⏭️ Skipped.";
+    nextRound();
+  }
 
-  // Add Enter key support
-  input?.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      evaluateGuess();
-    }
+  // Event listeners
+  $btnGuess.addEventListener("click", handleGuess);
+  $btnSkip.addEventListener("click", skipPuzzle);
+  $guess.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleGuess();
   });
 
-  // Create and add hint button
+  // Create hint button
   const hintButton = document.createElement("button");
+  hintButton.id = "btnHint";
   hintButton.textContent = "Hint";
   hintButton.style.cssText = `
     background-color: #3b82f6;
@@ -95,8 +135,11 @@
   });
   hintButton.addEventListener("click", showHint);
 
-  // Insert hint button after the guess button
-  if (button && button.parentNode) {
-    button.parentNode.insertBefore(hintButton, button.nextSibling);
+  // Insert hint button after skip button
+  if ($btnSkip && $btnSkip.parentNode) {
+    $btnSkip.parentNode.insertBefore(hintButton, $btnSkip.nextSibling);
   }
+
+  // Start the game
+  startRound();
 })();
